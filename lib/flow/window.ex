@@ -258,6 +258,9 @@ defmodule Flow.Window do
           required(:trigger) => {fun(), fun()} | nil,
           required(:periodically) => [trigger],
           optional(atom()) => term()
+        } | %Flow.Window.Global{
+          trigger: {fun(), fun()} | nil,
+          periodically: [trigger]
         }
 
   @typedoc "The supported window types."
@@ -309,7 +312,7 @@ defmodule Flow.Window do
 
   See the section on "Count windows" in the module documentation for examples.
   """
-  @spec count(pos_integer) :: t
+  @spec count(pos_integer) :: t | none()
   def count(count) when is_integer(count) and count > 0 do
     %Flow.Window.Count{count: count}
   end
@@ -328,7 +331,7 @@ defmodule Flow.Window do
 
   See the section on "Periodic windows" in the module documentation for examples.
   """
-  @spec periodic(pos_integer, time_unit) :: t
+  @spec periodic(pos_integer, time_unit) :: t | none()
   def periodic(count, unit) when is_integer(count) and count > 0 do
     %Flow.Window.Periodic{duration: to_ms(count, unit)}
   end
@@ -351,7 +354,7 @@ defmodule Flow.Window do
 
   See the section on "Fixed windows" in the module documentation for examples.
   """
-  @spec fixed(pos_integer, time_unit, (t -> pos_integer)) :: t
+  @spec fixed(pos_integer, time_unit, (t -> pos_integer)) :: t | none()
   def fixed(count, unit, by) when is_integer(count) and count > 0 and is_function(by, 1) do
     %Flow.Window.Fixed{duration: to_ms(count, unit), by: by}
   end
@@ -443,7 +446,7 @@ defmodule Flow.Window do
       [55, 210, 465, 820, 1275, 1830, 2485, 3240, 4095, 5050, 5050]
 
   """
-  @spec trigger_every(t, pos_integer) :: t
+  @spec trigger_every(t, pos_integer) :: t | none()
   def trigger_every(window, count) when is_integer(count) and count > 0 do
     name = {:every, count}
 
@@ -483,7 +486,7 @@ defmodule Flow.Window do
   Similar to periodic triggers, message-based triggers will also be
   invoked to all windows that have changed since the last trigger.
   """
-  @spec trigger_periodically(t, pos_integer, time_unit) :: t
+  @spec trigger_periodically(t, pos_integer, time_unit) :: t | none()
   def trigger_periodically(%{periodically: periodically} = window, count, unit)
       when is_integer(count) and count > 0 do
     trigger = {to_ms(count, unit), {:periodically, count, unit}}
